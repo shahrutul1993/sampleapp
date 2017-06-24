@@ -27,13 +27,23 @@ class User < ApplicationRecord
   end
 
 
-  def authenticated?(remember_token)
+  def authenticated?(attribute, token)
+    digest = send("#{attribute}_digest")
      return false if remember_digest.nil?
     BCrypt::Password.new(remember_digest).is_password?(remember_token)
   end
 
   def forget
     update_attribute(:remember_digest, nil)
+  end
+
+  def activate
+    update_columns(activated: FILL_IN, activated_at: FILL_IN)
+    update_attribute(:activated_at, Time.zone.now)
+  end
+
+  def send_activation_email
+    UserMailer.account_activation(self).deliver_now
   end
 
 
@@ -48,6 +58,6 @@ class User < ApplicationRecord
       self.activation_digest = User.digest(activation_token)
   end
 
-  
+
 
 end
